@@ -7,6 +7,8 @@ function index() {
   // state
   const [data, setData] = useState<[] | null>(null);
   const [val, setVal] = useState("");
+  const [disable, setdisable] = useState(true);
+  const [itemId, setItemId] = useState("");
 
   //add todo function
   const addTodo = async () => {
@@ -19,7 +21,7 @@ function index() {
       }, "TodoData")
         .then((res) => {
           setVal("")
-          console.log(res);
+          // console.log(res);
         })
         .catch((err) => {
           console.log(err);
@@ -44,10 +46,10 @@ function index() {
   }, [data])
 
   //delete todo function
-  const deleteTodo =  (item: { documentId: string }) => {
+  const deleteTodo = (item: { documentId: string }) => {
     deleteDocument(item.documentId, "TodoData")
       .then((res) => {
-        console.log(res);
+        // console.log(res);
       })
       .catch((err) => {
         console.log(err);
@@ -55,8 +57,20 @@ function index() {
   }
 
   //update todo function
-  const updateTodo = (item:{documentId:string ; val:string})=>{
-    setVal(item.val)
+  const setTodoVal = (item: { documentId: string; val: string }) => {
+    setVal(item.val);
+    setItemId(item.documentId)
+    setdisable(false);
+  }
+
+  const updateTodo = () => {
+    updateDocument({
+      val: val
+    }, itemId, "TodoData")
+      .then((res) => {
+        setdisable(true)
+        setVal("");
+      })
   }
 
   return (
@@ -66,15 +80,16 @@ function index() {
         <Form.Control
           type="text"
           onChange={(e) => setVal(e.target.value)}
+          value={val}
         />
       </div>
       <div className='d-flex justify-content-center mt-3'>
-        <Button className='m-2' onClick={addTodo} variant="primary">Add Todo</Button>
-        <Button className='m-2' disabled={true} onClick={addTodo} variant="primary">Update Todo</Button>
+        <Button className='m-2' disabled={disable === true ? false : true} onClick={addTodo} variant="primary">Add Todo</Button>
+        <Button className='m-2' disabled={disable === true ? true : false} onClick={updateTodo} variant="primary">Update Todo</Button>
       </div>
       <div className="list container mt-5 pt-5">
         <ListGroup>
-          {data && data.length > 1 ? data.map((item: { val: string; documentId: string }, index: number) => {
+          {data ? data.map((item: { val: string; documentId: string }, index: number) => {
             return <ListGroup.Item
               as="li" key={index}
               className="d-flex justify-content-between align-items-start"
@@ -82,10 +97,10 @@ function index() {
               <div className="ms-2 me-auto">
                 {item.val}
               </div>
-              <Button onClick={() => deleteTodo(item)} className='m-2' variant="danger">Delete</Button>
-              <Button className='m-2' variant="info">Update</Button>
+              <Button disabled={disable === true ? false : true} onClick={() => deleteTodo(item)} className='m-2' variant="danger">Delete</Button>
+              <Button disabled={disable === true ? false : true} onClick={() => setTodoVal(item)} className='m-2' variant="info">Update</Button>
             </ListGroup.Item>
-          }) : <h1>Loading....</h1>}
+          }) : <h1>Loading...</h1>}
         </ListGroup>
       </div>
     </>

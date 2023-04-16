@@ -1,41 +1,59 @@
-import React, { useState , useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Form, Button, ListGroup } from 'react-bootstrap';
-import { getAllData, sendData } from '@/config/firebaseMethod';
+import { Form, Button, ListGroup, Badge } from 'react-bootstrap';
+import { deleteDocument, getAllData, sendData } from '@/config/firebaseMethod';
 
 function index() {
   // state
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<[] | null>(null);
   const [val, setVal] = useState("");
 
   //add todo function
   const addTodo = async () => {
-    await sendData({
-      val
-    }, "TodoData")
-    .then((res)=>{
-      console.log(res);
-    })
-    .catch((err)=>{
-      console.log(err);
-    })
+    if(!val.trim()){
+      alert("Please Fill the form")
+    }
+    else{
+      await sendData({
+        val
+      }, "TodoData")
+        .then((res) => {
+          setVal("")
+          console.log(res);
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+    }
+
 
   }
 
   //useEffect for get data
   useEffect(() => {
     getAllData("TodoData")
+      .then((res) => {
+        setData(res as [])
+        // console.log(data);
+
+      })
+      .catch((err) => {
+        console.log(err);
+
+      })
+  }, [data])
+
+  //delete todo function
+  const deleteTodo = async(item:{documentId:string})=>{
+    deleteDocument(item.documentId , "TodoData")
     .then((res)=>{
-      setData(res)
-      // console.log(data);
-      
+      console.log(res);
     })
     .catch((err)=>{
       console.log(err);
-      
     })
-  }, [data])
-  
+  }
+
   return (
     <>
       <h1 className='text-center mt-3'>TODO APP</h1>
@@ -50,16 +68,17 @@ function index() {
       </div>
       <div className="list container mt-5 pt-5">
         <ListGroup>
-          {/* <ListGroup.Item>Cras justo odio</ListGroup.Item>
-          <ListGroup.Item>Dapibus ac facilisis in</ListGroup.Item>
-          <ListGroup.Item>Morbi leo risus</ListGroup.Item>
-          <ListGroup.Item>Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item>Vestibulum at eros</ListGroup.Item> */}
-          {/* {data.map((item, index) => {
-            return <ListGroup.Item key={index}>{item}</ListGroup.Item>
-          })} */}
-          {data?data.map((item:{val:string} , index:number)=>{
-            return <ListGroup.Item key={index}>{item.val}</ListGroup.Item>
+          {data && data.length>1 ? data.map((item: { val: string }, index: number) => {
+            return <ListGroup.Item
+              as="li" key={index}
+              className="d-flex justify-content-between align-items-start"
+            >
+              <div className="ms-2 me-auto">
+                {item.val}
+              </div>
+              <Button onClick={()=>deleteTodo(item)} className='m-2' variant="danger">Delete</Button>
+              <Button className='m-2' variant="info">Update</Button>
+            </ListGroup.Item>
           }) : <h1>Loading....</h1>}
         </ListGroup>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Form, Button, ListGroup, Badge } from 'react-bootstrap';
-import { deleteDocument, getAllData, sendData } from '@/config/firebaseMethod';
+import { deleteDocument, getAllData, sendData, updateDocument } from '@/config/firebaseMethod';
 
 function index() {
   // state
@@ -10,10 +10,10 @@ function index() {
 
   //add todo function
   const addTodo = async () => {
-    if(!val.trim()){
+    if (!val.trim()) {
       alert("Please Fill the form")
     }
-    else{
+    else {
       await sendData({
         val
       }, "TodoData")
@@ -44,14 +44,19 @@ function index() {
   }, [data])
 
   //delete todo function
-  const deleteTodo = async(item:{documentId:string})=>{
-    deleteDocument(item.documentId , "TodoData")
-    .then((res)=>{
-      console.log(res);
-    })
-    .catch((err)=>{
-      console.log(err);
-    })
+  const deleteTodo =  (item: { documentId: string }) => {
+    deleteDocument(item.documentId, "TodoData")
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+  }
+
+  //update todo function
+  const updateTodo = (item:{documentId:string ; val:string})=>{
+    setVal(item.val)
   }
 
   return (
@@ -64,11 +69,12 @@ function index() {
         />
       </div>
       <div className='d-flex justify-content-center mt-3'>
-        <Button onClick={addTodo} variant="primary">Add Todo</Button>
+        <Button className='m-2' onClick={addTodo} variant="primary">Add Todo</Button>
+        <Button className='m-2' disabled={true} onClick={addTodo} variant="primary">Update Todo</Button>
       </div>
       <div className="list container mt-5 pt-5">
         <ListGroup>
-          {data && data.length>1 ? data.map((item: { val: string }, index: number) => {
+          {data && data.length > 1 ? data.map((item: { val: string; documentId: string }, index: number) => {
             return <ListGroup.Item
               as="li" key={index}
               className="d-flex justify-content-between align-items-start"
@@ -76,7 +82,7 @@ function index() {
               <div className="ms-2 me-auto">
                 {item.val}
               </div>
-              <Button onClick={()=>deleteTodo(item)} className='m-2' variant="danger">Delete</Button>
+              <Button onClick={() => deleteTodo(item)} className='m-2' variant="danger">Delete</Button>
               <Button className='m-2' variant="info">Update</Button>
             </ListGroup.Item>
           }) : <h1>Loading....</h1>}
